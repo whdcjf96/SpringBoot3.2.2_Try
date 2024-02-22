@@ -1,37 +1,53 @@
 package Logan.Community;
 
-//import org.springframework.boot.SpringApplication;
-//import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import jakarta.servlet.ServletContext;
+
+import Logan.Community.controller.HomeController;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.catalina.startup.Tomcat;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
-import org.springframework.boot.web.servlet.ServletContextInitializer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 import java.io.IOException;
 
-//@SpringBootApplication
 public class CommunityApplication {
 
 	public static void main(String[] args) {
+//		서블릿 띄워보기 start
 		TomcatServletWebServerFactory tomcatServletWebServerFactory = new TomcatServletWebServerFactory();
 		WebServer webServer = tomcatServletWebServerFactory.getWebServer(servletContext -> {
-            servletContext.addServlet("hello", new HttpServlet() {
+			HomeController homeController = new HomeController();
+			servletContext.addServlet("frontController", new HttpServlet() {
 				@Override
 				protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-					resp.setStatus(200);
-					resp.setHeader("Content-Type", "text/plain");
-					resp.getWriter().println("Hello Servlet");
+					if (req.getRequestURI().equals("/hello") && req.getMethod().equals(HttpMethod.GET.name())){
+						String name = req.getParameter("name");
+
+						String ret = homeController.hello(name);
+
+						resp.setStatus(HttpStatus.OK.value());
+						resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+						resp.getWriter().println(ret);
+					}
+					else if (req.getRequestURI().equals("/user")) {
+						resp.setStatus(HttpStatus.OK.value());
+					}
+					else {
+						resp.setStatus(HttpStatus.NOT_FOUND.value());
+					}
+
 				}
-			}).addMapping("/hello");
+			}).addMapping("/*");
         });
 		webServer.start();
-//		SpringApplication.run(CommunityApplication.class, args);
+//		서블릿 띄워보기 end
+
 	}
 
 }
